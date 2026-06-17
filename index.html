@@ -205,8 +205,18 @@ z-index:9000;
 
 </style>
 </head>
-
 <body>
+
+<!-- AUDIO FILES -->
+
+<audio id="clickSound" src="click.wav"></audio>
+<audio id="cashSound" src="cash.wav"></audio>
+<audio id="cardSound" src="card.wav"></audio>
+<audio id="printerSound" src="printer.wav"></audio>
+<audio id="errorSound" src="error.wav"></audio>
+<audio id="bootSound" src="boot.wav"></audio>
+
+<!-- BOOT -->
 
 <!-- BOOT -->
 
@@ -368,6 +378,21 @@ ORDER #----
 </div>
 
 <script>
+/* SOUND SYSTEM */
+
+function playSound(id){
+
+let sound = document.getElementById(id);
+
+if(sound){
+
+sound.currentTime = 0;
+
+sound.play().catch(()=>{});
+
+}
+
+}
 
 /* BOOT */
 
@@ -415,7 +440,7 @@ let total=0;
 let receipt=[];
 
 function addOrder(){
-
+playSound("clickSound");
 terminalMessage("ADDING ORDER...");
 
 let pizza=document.getElementById("pizza");
@@ -475,6 +500,8 @@ added=true;
 
 if(!added){
 
+playSound("errorSound");
+
 terminalMessage("ERROR 22\nNO FOOD SELECTED");
 
 return;
@@ -486,7 +513,7 @@ updateReceipt();
 }
 
 function updateReceipt(){
-
+playSound("clickSound");
 document.getElementById("receipt").innerText=
 receipt.join("\n");
 
@@ -496,7 +523,7 @@ document.getElementById("total").innerText=
 }
 
 function clearOrder(){
-
+playSound("clickSound");
 terminalMessage("CLEARING TERMINAL...");
 
 receipt=[];
@@ -515,6 +542,17 @@ document.getElementById("orderNumber").innerText=
 
 function buy(){
 
+let payment=document.getElementById("payment").value;
+
+if(payment==="Cash"){
+
+playSound("cashSound");
+
+}else{
+
+playSound("cardSound");
+
+}
 if(total===0){
 
 terminalMessage("NO ORDER SELECTED");
@@ -532,8 +570,10 @@ document.getElementById("popupText").innerText=
 
 setTimeout(function(){
 
+playSound("printerSound");
+
 document.getElementById("popupText").innerText=
-"PRINTING RECEIPT...\n|||||||||||||||||";
+"PRINTING RECEIPT...
 
 },2000);
 
