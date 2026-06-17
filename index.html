@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SCRATCHER TERMINAL</title>
+
+<style>
+
+body{
+margin:0;
+background:#050505;
+font-family:Courier New;
+color:#d8d8d8;
+overflow:hidden;
+}
+
+/* CRT SCANLINES */
+
+body::before{
+content:"";
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+pointer-events:none;
+background:
+repeating-linear-gradient(
+0deg,
+rgba(255,255,255,0.03),
+rgba(255,255,255,0.03) 1px,
+transparent 1px,
+transparent 3px
+);
+z-index:1000;
+}
+
+/* FLICKER */
+
+@keyframes flicker{
+0%{opacity:1;}
+50%{opacity:0.98;}
+100%{opacity:1;}
+}
+
+/* BOOT SCREEN */
+
+#bootScreen{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:black;
+color:#00ff00;
+padding:40px;
+font-size:22px;
+z-index:9999;
+}
+
+#bootBar{
+width:0%;
+height:20px;
+background:#00ff00;
+margin-top:20px;
+}
+
+/* MAIN APP */
+
+#app{
+display:none;
+padding:20px;
+animation:flicker .12s infinite;
+}
+
+.window{
+width:1500px;
+margin:auto;
+display:flex;
+background:#111;
+border:4px solid #444;
+box-shadow:0px 0px 50px black;
+}
+
+/* PANELS */
+
+.left{
+width:60%;
+padding:20px;
+}
+
+.center{
+width:20%;
+padding:20px;
+background:#0d0d0d;
+border-left:2px solid #333;
+border-right:2px solid #333;
+}
+
+.right{
+width:20%;
+padding:20px;
+background:#090909;
+}
+
+.title{
+background:#222;
+padding:10px;
+font-size:24px;
+border:2px solid #555;
+margin-bottom:20px;
+display:flex;
+justify-content:space-between;
+}
+
+.section{
+margin-bottom:20px;
+}
+
+select,input{
+width:100%;
+padding:10px;
+background:#181818;
+border:2px solid #444;
+color:white;
+font-family:inherit;
+margin-top:5px;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+background:#222;
+border:2px solid #555;
+color:white;
+cursor:pointer;
+font-family:inherit;
+}
+
+button:hover{
+background:#333;
+transform:scale(1.02);
+}
+
+.receipt{
+background:black;
+padding:15px;
+min-height:300px;
+border:2px dashed #555;
+white-space:pre-line;
+}
+
+.total{
+font-size:28px;
+margin-top:20px;
+color:orange;
+}
+
+.mascot{
+width:220px;
+display:block;
+margin:auto;
+}
+
+.monitor{
+background:black;
+padding:10px;
+border:2px solid #555;
+margin-top:20px;
+height:100px;
+}
+
+.inventory{
+background:#111;
+padding:10px;
+border:2px solid #444;
+margin-top:20px;
+}
+
+.tutorial{
+background:#101010;
+padding:10px;
+border:2px solid #444;
+margin-top:20px;
+font-size:12px;
+}
+
+/* POPUP */
+
+.popup{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:black;
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+font-size:40px;
+text-align:center;
+z-index:9000;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- BOOT -->
+
+<div id="bootScreen">
+
+SCRATCHER TERMINAL BIOS v1.2<br><br>
+
+INITIALIZING SYSTEM...<br>
+LOADING EMPLOYEE DATABASE...<br>
+CHECKING KITCHEN CONNECTION...<br>
+LOADING INVENTORY...<br>
+STARTING CASH REGISTER...<br>
+
+<div style="border:2px solid #00ff00;width:500px;margin-top:20px;">
+<div id="bootBar"></div>
+</div>
+
+</div>
+
+<!-- POPUP -->
+
+<div class="popup" id="popup">
+<div id="popupText">PROCESSING...</div>
+</div>
+
+<!-- MAIN APP -->
+
+<div id="app">
+
+<div class="window">
+
+<!-- LEFT -->
+
+<div class="left">
+
+<div class="title">
+
+<span>SCRATCHER TERMINAL vFINAL</span>
+
+<span id="clock">00:00:00</span>
+
+</div>
+
+<div class="section">
+Pizza Selection
+<select id="pizza">
+<option value="0">None</option>
+<option value="8">Cheese Pizza ($8)</option>
+<option value="10">Pepperoni Pizza ($10)</option>
+<option value="12">Monster Pizza ($12)</option>
+<option value="13">Inferno Pizza ($13)</option>
+</select>
+<input id="pizzaQty" type="number" min="1" value="1">
+</div>
+
+<div class="section">
+Combo Bundle
+<select id="combo">
+<option value="0">None</option>
+<option value="12">Combo 1 Pizza+Wings+Breadrolls ($12)</option>
+<option value="17">Combo 2 Family Combo ($17)</option>
+<option value="22">Combo 3 Mega Feast ($22)</option>
+</select>
+<input id="comboQty" type="number" min="1" value="1">
+</div>
+
+<div class="section">
+Extra Items
+<select id="extra">
+<option value="0">None</option>
+<option value="4">Buffalo Wings ($4)</option>
+<option value="3">Bread Rolls ($3)</option>
+<option value="2">Drink ($2)</option>
+<option value="5">Cheesy Bread ($5)</option>
+</select>
+<input id="extraQty" type="number" min="1" value="1">
+</div>
+
+<div class="section">
+Payment Method
+<select id="payment">
+<option>Cash</option>
+<option>Card</option>
+</select>
+</div>
+
+<button onclick="addOrder()">ADD ORDER</button>
+<button onclick="buy()">BUY ORDER</button>
+<button onclick="clearOrder()">CLEAR</button>
+
+<div class="tutorial">
+
+NEW EMPLOYEE GUIDE
+
+1. Select products  
+2. Set quantities  
+3. Choose payment  
+4. Add order OR press [A]  
+5. Confirm purchase OR press [B]  
+6. Clear order OR press [C]  
+
+HOTKEYS
+
+[A] ADD ORDER  
+[B] BUY ORDER  
+[C] CLEAR TERMINAL  
+
+</div>
+
+</div>
+
+<!-- CENTER -->
+
+<div class="center">
+
+<img class="mascot" src="chef.png">
+
+<div class="monitor">
+
+CAM 01  
+KITCHEN ACTIVE  
+
+ONLINE STATUS: OK  
+
+</div>
+
+<div class="inventory" id="inventory">
+
+DOUGH: 18  
+WINGS: 43  
+ROLLS: 27  
+
+</div>
+
+</div>
+
+<!-- RIGHT -->
+
+<div class="right">
+
+<h3>RECEIPT</h3>
+
+<div class="receipt" id="receipt">
+Awaiting order...
+</div>
+
+<div class="total" id="total">
+TOTAL: $0
+</div>
+
+<div id="orderNumber" style="margin-top:20px;">
+ORDER #----
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+/* BOOT */
+
+let boot=0;
+
+let bootInterval=setInterval(function(){
+
+boot+=5;
+
+document.getElementById("bootBar").style.width=boot+"%";
+
+if(boot>=100){
+
+clearInterval(bootInterval);
+
+document.getElementById("bootScreen").style.display="none";
+
+document.getElementById("app").style.display="block";
+
+}
+
+},120);
+
+
+/* CLOCK */
+
+function updateClock(){
+
+let now=new Date();
+
+let time=now.toLocaleTimeString();
+
+document.getElementById("clock").innerText=time;
+
+}
+
+setInterval(updateClock,1000);
+
+updateClock();
+
+
+/* ORDER SYSTEM */
+
+let total=0;
+let receipt=[];
+
+function addOrder(){
+
+terminalMessage("ADDING ORDER...");
+
+let pizza=document.getElementById("pizza");
+let combo=document.getElementById("combo");
+let extra=document.getElementById("extra");
+
+let pizzaQty=parseInt(document.getElementById("pizzaQty").value);
+let comboQty=parseInt(document.getElementById("comboQty").value);
+let extraQty=parseInt(document.getElementById("extraQty").value);
+
+let added=false;
+
+if(Number(pizza.value)>0){
+
+let cost=Number(pizza.value)*pizzaQty;
+
+receipt.push(
+pizza.options[pizza.selectedIndex].text+
+" x"+pizzaQty+
+" = $"+cost
+);
+
+total+=cost;
+added=true;
+
+}
+
+if(Number(combo.value)>0){
+
+let cost=Number(combo.value)*comboQty;
+
+receipt.push(
+combo.options[combo.selectedIndex].text+
+" x"+comboQty+
+" = $"+cost
+);
+
+total+=cost;
+added=true;
+
+}
+
+if(Number(extra.value)>0){
+
+let cost=Number(extra.value)*extraQty;
+
+receipt.push(
+extra.options[extra.selectedIndex].text+
+" x"+extraQty+
+" = $"+cost
+);
+
+total+=cost;
+added=true;
+
+}
+
+if(!added){
+
+terminalMessage("ERROR 22\nNO FOOD SELECTED");
+
+return;
+
+}
+
+updateReceipt();
+
+}
+
+function updateReceipt(){
+
+document.getElementById("receipt").innerText=
+receipt.join("\n");
+
+document.getElementById("total").innerText=
+"TOTAL: $"+total;
+
+}
+
+function clearOrder(){
+
+terminalMessage("CLEARING TERMINAL...");
+
+receipt=[];
+total=0;
+
+document.getElementById("receipt").innerText=
+"Awaiting order...";
+
+document.getElementById("total").innerText=
+"TOTAL: $0";
+
+document.getElementById("orderNumber").innerText=
+"ORDER #----";
+
+}
+
+function buy(){
+
+if(total===0){
+
+terminalMessage("NO ORDER SELECTED");
+
+return;
+
+}
+
+let popup=document.getElementById("popup");
+
+popup.style.display="flex";
+
+document.getElementById("popupText").innerText=
+"CONNECTING TO KITCHEN...";
+
+setTimeout(function(){
+
+document.getElementById("popupText").innerText=
+"PRINTING RECEIPT...\n|||||||||||||||||";
+
+},2000);
+
+setTimeout(function(){
+
+let number=Math.floor(Math.random()*9000)+1000;
+
+document.getElementById("orderNumber").innerText=
+"ORDER #"+number;
+
+document.getElementById("popupText").innerText=
+"ORDER COMPLETE\n\nPAYMENT ACCEPTED\n\nKITCHEN RECEIVED ORDER";
+
+},4000);
+
+setTimeout(function(){
+
+popup.style.display="none";
+
+document.getElementById("inventory").innerText=
+
+"DOUGH: "+(Math.floor(Math.random()*20)+5)+"\n"+
+"WINGS: "+(Math.floor(Math.random()*50)+10)+"\n"+
+"ROLLS: "+(Math.floor(Math.random()*30)+5);
+
+clearOrder();
+
+},7000);
+
+}
+
+
+/* TERMINAL MESSAGE */
+
+function terminalMessage(text){
+
+let popup=document.getElementById("popup");
+
+popup.style.display="flex";
+
+document.getElementById("popupText").innerText=text;
+
+setTimeout(function(){
+
+popup.style.display="none";
+
+},700);
+
+}
+
+
+/* HOTKEYS */
+
+document.addEventListener("keydown",function(event){
+
+let tag=document.activeElement.tagName;
+
+if(tag==="INPUT"){
+return;
+}
+
+let key=event.key.toLowerCase();
+
+if(key==="a"){
+addOrder();
+}
+
+if(key==="b"){
+buy();
+}
+
+if(key==="c"){
+clearOrder();
+}
+
+});
+
+</script>
+
+</body>
+</html>
